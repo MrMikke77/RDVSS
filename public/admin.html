@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Interface Admin - RDV</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .card { border:1px solid #ccc; margin:1em 0; padding:1em; }
+    .pending { background:#fffbe6; }
+    .accepted { background:#e6ffed; }
+    .refused { background:#ffe6e6; }
+  </style>
+</head>
+<body>
+  <h1>Admin - Gestion des Rendez-vous</h1>
+  <div id="rdvs"></div>
+  <script>
+    async function load() {
+      const res = await fetch('/api/appointments');
+      const { appointments } = await res.json();
+      const cont = document.getElementById('rdvs');
+      cont.innerHTML = '';
+      appointments.reverse().forEach(rdv => {
+        const div = document.createElement('div');
+        div.className = `card ${rdv.status}`;
+        div.innerHTML = `
+          <b>Nom:</b> ${rdv.nom}<br>
+          <b>Email:</b> ${rdv.email}<br>
+          <b>Date:</b> ${rdv.date}<br>
+          <b>Commentaire:</b> ${rdv.commentaire || ''}<br>
+          <b>Status:</b> <span>${rdv.status}</span><br>
+          <b>Commentaire admin:</b> ${rdv.admin_comment || ''}<br>
+          ${rdv.status === 'pending' ? `
+            <form onsubmit="return handleDecision('${rdv.id}', this)">
+              <input type="text" name="comment" placeholder="Commentaire admin">
+              <button type="button" onclick="handleDecision('${rdv.id}', this.form, 'accept')">Accepter</button>
+              <button type="button" onclick="handleDecision('${rdv.id}', this.form, 'refuse')">Refuser</button>
+            </form>
+          ` : ''}
+        `;
+        cont.appendChild(div);
+      });
+    }
+
+    async function handleDecision(id, form, decision) {
+      const comment = form.comment.value;
+      await fetch('/api/appointment/' + id + '/decision', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ decision, comment })
+      });
+      load();
+      return false;
+    }
+
+    load();
+  </script>
+</body>
+</html>
