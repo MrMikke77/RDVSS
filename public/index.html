@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Prendre Rendez-vous</title>
+  <meta name="description" content="Prise rapide de rendez-vous.">
+</head>
+<body>
+  <h1>Prendre Rendez-vous</h1>
+  <form id="rdv-form">
+    <input name="nom" placeholder="Votre nom" required><br>
+    <input name="email" placeholder="Votre email" type="email" required><br>
+    <input name="date" type="datetime-local" required><br>
+    <textarea name="commentaire" placeholder="Commentaire"></textarea><br>
+    <button type="submit">Envoyer</button>
+  </form>
+  <div id="result"></div>
+  <hr>
+  <h2>Intégrer sur mon site / Google My Business</h2>
+  <p>
+    <b>Sur votre site web :</b><br>
+    <code>
+      &lt;a href="https://<span id="your-domain"></span>" target="_blank"&gt;Prendre rendez-vous en ligne&lt;/a&gt;
+    </code>
+    <br><br>
+    <b>Sur votre fiche Google My Business :</b><br>
+    Ajoutez le lien ci-dessus dans la section "Prendre un rendez-vous" de votre fiche Google My Business.
+  </p>
+  <script>
+    document.getElementById('rdv-form').onsubmit = async e => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      const res = await fetch('/api/appointment', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+      });
+      const out = await res.json();
+      document.getElementById('result').textContent = out.success ? "Demande envoyée !" : "Erreur";
+    }
+    // Affiche le domaine pour l'intégration
+    document.getElementById('your-domain').textContent = window.location.host;
+  </script>
+</body>
+</html>
